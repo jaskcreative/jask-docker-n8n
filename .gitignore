@@ -1,0 +1,24 @@
+# Environment variables
+.env
+.env.* 
+!.env.example
+
+# Docker service data (ignore all contents but keep folder structure)
+service-data/*
+!service-data/.gitkeep
+
+# Node and general temp files
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs & temp files
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker related artifacts
+*.pid
