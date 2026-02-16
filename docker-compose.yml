@@ -12,6 +12,22 @@ networks:
     external: false
 
 services:
+  # Redis service for N8N
+  redis:
+    image: redis:7-alpine
+    container_name: n8n-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./service-data/redis-data:/data
+    networks:
+      - jask-internal-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   # PostgreSQL database service for N8N
   postgres:
     image: postgres:16-alpine
@@ -128,6 +144,10 @@ services:
       - QDRANT_BASE_URL=${QDRANT_BASE_URL}
       # - QDRANT_API_KEY=${QDRANT_API_KEY}
 
+      # Redis configuration
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+
     depends_on:
       # Wait for the database to be healthy and Qdrant to be started
       postgres:
@@ -141,3 +161,21 @@ services:
       - ./service-data/backups:/home/node/backups
     networks:
       - jask-internal-net
+
+  # MCP service for N8N
+  n8n-mcp:
+    image: ghcr.io/czlonkowski/n8n-mcp:latest
+    container_name: n8n-mcp
+    restart: unless-stopped
+    environment:
+      - N8N_API_URL=http://n8n:5678/api/v1
+      - N8N_API_KEY=${MCP_N8N_API_KEY}
+      - MCP_MODE=http
+      - AUTH_TOKEN=${MCP_AUTH_TOKEN}
+    ports:
+      - "${MCP_PORT:-3000}:3000"
+    networks:
+      - jask-internal-net
+    depends_on:
+      n8n:
+        condition: service_started

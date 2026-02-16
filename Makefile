@@ -8,7 +8,7 @@
 # SERVICE = n8n
 
 # Makefile Targets, prevent conflicts with file names
-.PHONY: up down update backup restore-postgres rebuild
+.PHONY: up down update backup restore-postgres rebuild redis-shell add-to-jask-internal-net
 
 # Start the service in detached mode
 up:
@@ -49,3 +49,11 @@ rebuild:
 
 	# Start the full stack in detached mode
 	docker compose up -d
+
+# Redis shell
+redis-shell:
+	docker exec -it n8n-redis redis-cli
+
+# Add to Jask Internal Network
+add-to-jask-internal-net:
+	docker network connect jask-internal-net $$(docker compose ps -q n8n) || true
